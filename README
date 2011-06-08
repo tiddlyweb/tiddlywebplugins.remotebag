@@ -1,0 +1,19 @@
+A TiddlyWeb plugin that provides access to remote content as if it were a bag.
+
+The general purpose is to allow a recipe to contain a URI where a
+bag name would normally go. If that URI is a remote TiddlyWeb bag
+then the stuff on the end of the URI will be treated as JSON tiddlers.
+Otherwise adaptor mechanisms can be coded in to process the content.
+If there is no adaptor mechanism, then the stuff on the end is treated
+as containing a single tiddler with type whatever the content-type of
+the resource is.
+
+This is highly experimental stuff, and as currently formed results
+in an open proxy on the TiddlyWeb server that uses it.
+
+Only publically available content is usable through this process.
+
+BSD Licensed
+Copyright 2011, Chris Dent <cdent@peermore.com>
+
+See also http://tiddlyweb.com/

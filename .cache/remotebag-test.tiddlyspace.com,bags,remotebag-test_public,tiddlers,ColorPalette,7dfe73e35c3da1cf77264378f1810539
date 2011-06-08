@@ -1,0 +1,16 @@
+status: 200
+content-length: 776
+content-location: http://remotebag-test.tiddlyspace.com/bags/remotebag-test_public/tiddlers/ColorPalette
+-content-encoding: gzip
+vary: Accept,Accept-Encoding
+server: Apache/2.2.9 (Debian) mod_wsgi/2.5 Python/2.5.2
+etag: "remotebag-test_public/ColorPalette/382536;
+	426b1d0d8497d806a8db7702210f1c9c6ee15d98"
+cache-control: no-cache
+date: Wed, 08 Jun 2011 15:10:47 GMT
+access-control-allow-origin: *
+content-type: application/json; charset=UTF-8
+-varied-accept: application/json
+-varied-accept-encoding: gzip, deflate
+
+{"created": "20110606113114", "fields": {"_hash": "81225e83b4200bdd73e5b637612e3f90962fd524"}, "creator": "cdent", "recipe": null, "modified": "20110606113114", "bag": "remotebag-test_public", "text": "/*{{{*/\nBackground: #eee1f3\nForeground: #180b1d\nPrimaryPale: #ffffff\nPrimaryLight: #c290d4\nPrimaryMid: #7b3893\nPrimaryDark: #1e0e24\nSecondaryPale: #ffffff\nSecondaryLight: #90d3d4\nSecondaryMid: #389193\nSecondaryDark: #0e2424\nTertiaryPale: #ffffff\nTertiaryLight: #d4af90\nTertiaryMid: #936138\nTertiaryDark: #24180e\nError: #f88\nColorPaletteParameters: HSL([284|77], [0.4444254101254046],[0.1|0.4|0.7|1])\n/*}}}*/", "title": "ColorPalette", "permissions": ["read"], "modifier": "cdent", "type": null, "tags": ["excludeLists", "excludeSearch"], "revision": 382536}

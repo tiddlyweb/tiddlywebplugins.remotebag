@@ -1,0 +1,16 @@
+status: 200
+content-length: 363
+content-location: http://remotebag-test.tiddlyspace.com/bags/remotebag-test_public/tiddlers/SiteTitle
+-content-encoding: gzip
+vary: Accept,Accept-Encoding
+server: Apache/2.2.9 (Debian) mod_wsgi/2.5 Python/2.5.2
+etag: "remotebag-test_public/SiteTitle/382534;
+	426b1d0d8497d806a8db7702210f1c9c6ee15d98"
+cache-control: no-cache
+date: Wed, 08 Jun 2011 15:10:48 GMT
+access-control-allow-origin: *
+content-type: application/json; charset=UTF-8
+-varied-accept: application/json
+-varied-accept-encoding: gzip, deflate
+
+{"created": "20110606113114", "fields": {"_hash": "8c37fc1cea5183ac2575f1154f148a4dffa668bf"}, "creator": "cdent", "recipe": null, "modified": "20110606113114", "bag": "remotebag-test_public", "text": "remotebag-test", "title": "SiteTitle", "permissions": ["read"], "modifier": "cdent", "type": null, "tags": ["excludeLists", "excludeSearch"], "revision": 382534}

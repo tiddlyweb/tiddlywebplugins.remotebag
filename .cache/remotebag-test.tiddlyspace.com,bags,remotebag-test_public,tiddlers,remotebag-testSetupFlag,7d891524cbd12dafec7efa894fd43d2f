@@ -1,0 +1,16 @@
+status: 200
+content-length: 505
+content-location: http://remotebag-test.tiddlyspace.com/bags/remotebag-test_public/tiddlers/remotebag-testSetupFlag
+-content-encoding: gzip
+vary: Accept,Accept-Encoding
+server: Apache/2.2.9 (Debian) mod_wsgi/2.5 Python/2.5.2
+etag: "remotebag-test_public/remotebag-testSetupFlag/382535;
+	426b1d0d8497d806a8db7702210f1c9c6ee15d98"
+cache-control: no-cache
+date: Wed, 08 Jun 2011 15:10:48 GMT
+access-control-allow-origin: *
+content-type: application/json; charset=UTF-8
+-varied-accept: application/json
+-varied-accept-encoding: gzip, deflate
+
+{"created": "20110606113114", "fields": {"_hash": "378e7c4224d9b9ed97947eefce1fab45a0a71696", "tiddlyspaceinit_version": "0.6"}, "creator": "cdent", "recipe": null, "modified": "20110606113114", "bag": "remotebag-test_public", "text": "@@Please do not modify this tiddler; it was created automatically upon space creation.@@", "title": "remotebag-testSetupFlag", "permissions": ["read"], "modifier": "cdent", "type": null, "tags": ["excludeLists", "excludeSearch", "excludePublisher"], "revision": 382535}
