@@ -12,6 +12,8 @@ it to work with non tiddler or tiddlyweb things.
 """
 
 import httplib2
+import memcache
+import os
 import re
 import simplejson
 
@@ -22,8 +24,21 @@ from tiddlyweb.web.util import encode_name
 from tiddlyweb.serializer import Serializer
 
 
+HTTP = None
+
+
 def init(config):
     config['special_bag_detectors'].append(is_remote)
+    if config.get('remotebag.use_memcache'):
+        cache = memcache.Client(config.get('memcache_hosts',
+            ['127.0.0.1:11211']))
+    else:
+        path = config.get('remotebag.cache_dir', '.cache')
+        if not os.path.isabs(path):
+            path = os.path.join(config.get('root_dir', ''), path)
+        cache = path
+    global HTTP
+    HTTP = httplib2.Http(cache)
 
 
 def is_remote(environ, uri):
@@ -44,14 +59,13 @@ def is_remote(environ, uri):
     return None
 
 
-
 def retrieve_remote(uri, accept=None):
-    http = httplib2.Http('.cache')
+    uri = uri.encode('UTF-8')
     try:
         if accept:
-            response, content = http.request(uri, headers={'Accept': accept})
+            response, content = HTTP.request(uri, headers={'Accept': accept})
         else:
-            response, content = http.request(uri)
+            response, content = HTTP.request(uri)
     except httplib2.HttpLib2Error, exc:
         raise SpecialBagError('unable to retrieve remote: %s: %s'
                 % (uri, exc))

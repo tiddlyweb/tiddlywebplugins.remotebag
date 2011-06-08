@@ -21,10 +21,10 @@ def setup_module(module):
         shutil.rmtree('store')
     except OSError:
         pass
+    init(config)
     module.store = get_store(config)
     module.environ = {'tiddlyweb.config': config,
             'tiddlyweb.store': store}
-    init(config)
 
 def test_get_tiddlers():
     tiddlers = list(get_remote_tiddlers(environ, REMOTE_BAG))
