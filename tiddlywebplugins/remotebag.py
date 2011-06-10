@@ -30,6 +30,7 @@ from tiddlyweb.serializer import Serializer
 from tiddlywebplugins.utils import ensure_bag, get_store
 
 
+TIDDLERS_PATTERN = re.compile(r'.*/(bags|recipes)/[^/]+/tiddlers$')
 REMOTEURI_BAG = '_remotebag'
 HTTP = None
 WHITE_DOMAINS = None
@@ -232,7 +233,14 @@ def _get_tiddlyweb_tiddlers(environ, uri):
     return _process_json_tiddlers(environ, content, uri)
 
 
-PATTERNS = [(re.compile(r'.*/(bags|recipes)/[^/]+/tiddlers$'),
+def _test_uri_for_tiddlers(environ, uri):
+    """
+    Return true if uri looks like a bags or recipes tiddlers URI.
+    """
+    return TIDDLERS_PATTERN.search(uri)
+
+
+TESTERS = [(_test_uri_for_tiddlers,
     (_get_tiddlyweb_tiddlers, _get_tiddlyweb_tiddler))]
 
 
@@ -241,11 +249,10 @@ def _determine_remote_handler(environ, uri):
     Determine which remote handler to use for this uri.
     """
     config = environ['tiddlyweb.config']
-    if len(PATTERNS) == 1:
-        for rule, target in config.get('remote_handlers', []):
-            PATTERNS.append((re.compile(rule), target))
-    for pattern, target in PATTERNS:
-        if pattern.search(uri):
+    if len(TESTERS) == 1:
+        TESTERS.extend(config.get('remotebag.remote_handlers', []))
+    for tester, target in TESTERS:
+        if tester(environ, uri):
             return target
     # do default, getting raw html
     return (get_remote_tiddlers_html, get_remote_tiddler_html)
