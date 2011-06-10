@@ -46,6 +46,7 @@ def test_get_tiddler():
 def test_get_recipe():
     recipe = Recipe('thing')
     recipe.set_recipe([(REMOTE_BAG, '')])
+    store.put(recipe)
 
     tiddlers = control.get_tiddlers_from_recipe(recipe, environ)
     titles = [tiddler.title for tiddler in tiddlers]
@@ -58,6 +59,7 @@ def test_get_recipe():
 def test_get_recipe_filters():
     recipe = Recipe('thing')
     recipe.set_recipe([(REMOTE_BAG, 'select=tag:alpha')])
+    store.put(recipe)
 
     tiddlers = control.get_tiddlers_from_recipe(recipe, environ)
     assert len(tiddlers) == 1
@@ -69,6 +71,7 @@ def test_get_recipe_filters():
 def test_get_remote_weird():
     recipe = Recipe('stuff')
     recipe.set_recipe([(REMOTE_HTML, '')])
+    store.put(recipe)
 
     tiddlers = control.get_tiddlers_from_recipe(recipe, environ)
     assert len(tiddlers) == 1

@@ -17,14 +17,38 @@ import os
 import re
 import simplejson
 
+from urlparse import urlparse
+
+from tiddlyweb.store import StoreError, HOOKS
 from tiddlyweb.specialbag import SpecialBagError
+from tiddlyweb.model.policy import ForbiddenError
 from tiddlyweb.model.tiddler import Tiddler
-from tiddlyweb.util import pseudo_binary
+from tiddlyweb.util import pseudo_binary, sha
 from tiddlyweb.web.util import encode_name
 from tiddlyweb.serializer import Serializer
 
+from tiddlywebplugins.utils import ensure_bag, get_store
 
+
+REMOTEURI_BAG = '_remotebag'
 HTTP = None
+WHITE_DOMAINS = None
+
+def recipe_change_hook(store, recipe):
+    for bag, filter in recipe.get_recipe():
+        if is_remote(store.environ, bag, whiteforce=True):
+            update_remoteuri_bag(store, bag)
+
+
+def update_remoteuri_bag(store, uri):
+    """
+    Create a tiddler in REMOTEURI_BAG to indicate it has been whitelisted.
+    """
+    key = _remotebag_key(store.environ, uri)
+    store.put(Tiddler(key, REMOTEURI_BAG))
+
+
+HOOKS['recipe']['put'].append(recipe_change_hook)
 
 
 def init(config):
@@ -40,23 +64,70 @@ def init(config):
     global HTTP
     HTTP = httplib2.Http(cache)
 
+    store = get_store(config)
+    policy = dict(manage=['NONE'], read=['NONE'], write=['NONE'],
+            create=['NONE'], accept=['NONE'])
+    ensure_bag(REMOTEURI_BAG, store, policy_dict=policy)
 
-def is_remote(environ, uri):
+
+def is_remote(environ, uri, whiteforce=False):
     """
     Return the tool for retrieving remote if this is a remote bag.
     Otherwise None.
     """
     if uri.startswith('http:') or uri.startswith('https:'):
 
-        def curry(environ, func):
-            def actor(bag):
-                return func(environ, bag)
-            return actor
+        if whiteforce or is_white(environ, uri):
 
-        return (curry(environ, get_remote_tiddlers),
-                curry(environ, get_remote_tiddler))
+            def curry(environ, func):
+                def actor(bag):
+                    return func(environ, bag)
+                return actor
+
+            return (curry(environ, get_remote_tiddlers),
+                    curry(environ, get_remote_tiddler))
 
     return None
+
+
+def is_white(environ, uri):
+    """
+    Return true if the URI passes a whitelist mechanism.
+    Otherwise raise a ForbiddedError.
+    """
+    (scheme, netloc, path, params, query, fragment) = urlparse(uri)
+    global WHITE_DOMAINS
+    if not WHITE_DOMAINS:
+        whitelist = environ.get('tiddlyweb.config', {}).get(
+                'remotebag.white_domains', [])
+        patterns = []
+        for domain in whitelist:
+            pattern = domain.replace('.', r'\.')
+            patterns.append(pattern)
+        WHITE_DOMAINS = re.compile('(?:' + '|'.join(patterns) + ')$')
+    if WHITE_DOMAINS.search(netloc) or via_recipe(environ, uri):
+        return True
+    raise ForbiddenError('remote uri not accepted: %s' % uri)
+
+
+def _remotebag_key(environ, uri):
+    """
+    Generate a tiddler title to use as the key in the REMOTEURI_BAG.
+    """
+    server_host = environ.get('tiddlyweb.config', {}).get(
+            'server_host')['host']
+    return sha(uri + server_host).hexdigest()
+
+
+def via_recipe(environ, uri):
+    store = environ['tiddlyweb.store']
+    key = _remotebag_key(environ, uri)
+    try:
+        tiddler = Tiddler(key, REMOTEURI_BAG)
+        store.get(tiddler)
+        return True
+    except StoreError:
+        raise ForbiddenError('remote uri not whitelisted: %s' % uri)
 
 
 def retrieve_remote(uri, accept=None):
@@ -137,7 +208,7 @@ def _get_tiddlyweb_tiddlers(environ, uri):
     return _process_json_tiddlers(environ, content, uri)
 
 
-PATTERNS = [(re.compile(r'.*/bags/[^/]+/tiddlers$'),
+PATTERNS = [(re.compile(r'.*/(bags|recipes)/[^/]+/tiddlers$'),
     (_get_tiddlyweb_tiddlers, _get_tiddlyweb_tiddler))]
 
 
