@@ -61,6 +61,8 @@ def init(config):
     """
     Initialize the plugin: setting up necessary defaults and globals.
     """
+    if not 'remotebag.remote_handlers' in config:
+        config['remotebag.remote_handlers'] = []
     config['special_bag_detectors'].append(is_remote)
 
     if config.get('remotebag.use_memcache'):
@@ -146,16 +148,17 @@ def via_recipe(environ, uri):
         raise ForbiddenError('remote uri not whitelisted: %s' % uri)
 
 
-def retrieve_remote(uri, accept=None):
+def retrieve_remote(uri, method='GET', accept=None):
     """
     Do an http reqeust to get the remote content.
     """
     uri = uri.encode('UTF-8')
     try:
         if accept:
-            response, content = HTTP.request(uri, headers={'Accept': accept})
+            response, content = HTTP.request(uri, method=method,
+                    headers={'Accept': accept})
         else:
-            response, content = HTTP.request(uri)
+            response, content = HTTP.request(uri, method=method)
     except httplib2.HttpLib2Error, exc:
         raise SpecialBagError('unable to retrieve remote: %s: %s'
                 % (uri, exc))
