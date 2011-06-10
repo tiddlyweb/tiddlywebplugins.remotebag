@@ -3,7 +3,7 @@ Routines for accessing a remote URI as if it where
 a remote bag of tiddlers, for use in a recipe. The
 idea is that if the bag portion of a line in a recipe
 is a URI, then we'll get whatever is on the other end
-as if it were tiddlers, and then filter accordingly, 
+as if it were tiddlers, and then filter accordingly,
 if the recipe line has a filter.
 
 At first pass this is a way of federating bags on
@@ -34,8 +34,13 @@ REMOTEURI_BAG = '_remotebag'
 HTTP = None
 WHITE_DOMAINS = None
 
+
 def recipe_change_hook(store, recipe):
-    for bag, filter in recipe.get_recipe():
+    """
+    When a recipe is put, if a bag is_remote, create a
+    tiddler in REMOTEURI_BAG.
+    """
+    for bag, _ in recipe.get_recipe():
         if is_remote(store.environ, bag, whiteforce=True):
             update_remoteuri_bag(store, bag)
 
@@ -52,7 +57,11 @@ HOOKS['recipe']['put'].append(recipe_change_hook)
 
 
 def init(config):
+    """
+    Initialize the plugin: setting up necessary defaults and globals.
+    """
     config['special_bag_detectors'].append(is_remote)
+
     if config.get('remotebag.use_memcache'):
         cache = memcache.Client(config.get('memcache_hosts',
             ['127.0.0.1:11211']))
@@ -61,6 +70,7 @@ def init(config):
         if not os.path.isabs(path):
             path = os.path.join(config.get('root_dir', ''), path)
         cache = path
+
     global HTTP
     HTTP = httplib2.Http(cache)
 
@@ -95,8 +105,9 @@ def is_white(environ, uri):
     Return true if the URI passes a whitelist mechanism.
     Otherwise raise a ForbiddedError.
     """
-    (scheme, netloc, path, params, query, fragment) = urlparse(uri)
     global WHITE_DOMAINS
+    netloc = urlparse(uri)[1]
+
     if not WHITE_DOMAINS:
         whitelist = environ.get('tiddlyweb.config', {}).get(
                 'remotebag.white_domains', [])
@@ -105,6 +116,7 @@ def is_white(environ, uri):
             pattern = domain.replace('.', r'\.')
             patterns.append(pattern)
         WHITE_DOMAINS = re.compile('(?:' + '|'.join(patterns) + ')$')
+
     if WHITE_DOMAINS.search(netloc) or via_recipe(environ, uri):
         return True
     raise ForbiddenError('remote uri not accepted: %s' % uri)
@@ -120,6 +132,9 @@ def _remotebag_key(environ, uri):
 
 
 def via_recipe(environ, uri):
+    """
+    Return true if this uri has been used in a recipe somewhere.
+    """
     store = environ['tiddlyweb.store']
     key = _remotebag_key(environ, uri)
     try:
@@ -131,6 +146,9 @@ def via_recipe(environ, uri):
 
 
 def retrieve_remote(uri, accept=None):
+    """
+    Do an http reqeust to get the remote content.
+    """
     uri = uri.encode('UTF-8')
     try:
         if accept:
@@ -169,7 +187,7 @@ def get_remote_tiddlers_html(environ, uri):
     """
     Retrieve a page of HTML as a single yielded tiddler.
     """
-    response, content = retrieve_remote(uri)
+    _, content = retrieve_remote(uri)
     try:
         title = content.split('<title>', 1)[1].split('</title>', 1)[0]
     except IndexError:
@@ -186,25 +204,31 @@ def get_remote_tiddler_html(environ, uri, title):
     response, content = retrieve_remote(uri)
     tiddler = Tiddler(title, uri)
     try:
-        type = response['content-type'].split(';', 1)[0]
+        content_type = response['content-type'].split(';', 1)[0]
     except KeyError:
-        type = 'text/html'
-    if pseudo_binary(type):
+        content_type = 'text/html'
+    if pseudo_binary(content_type):
         tiddler.text = content.decode('utf-8', 'replace')
     else:
         tiddler.text = content
-    tiddler.type = type
+    tiddler.type = content_type
     return tiddler
 
 
 def _get_tiddlyweb_tiddler(environ, uri, title):
+    """
+    Get a tiddler with title from uri.
+    """
     url = uri + '/' + encode_name(title)
-    response, content = retrieve_remote(url, accept='application/json')
+    _, content = retrieve_remote(url, accept='application/json')
     return _process_json_tiddler(environ, content, uri)
 
 
 def _get_tiddlyweb_tiddlers(environ, uri):
-    response, content = retrieve_remote(uri, accept='application/json')
+    """
+    Get the tiddlers at uri.
+    """
+    _, content = retrieve_remote(uri, accept='application/json')
     return _process_json_tiddlers(environ, content, uri)
 
 
@@ -228,6 +252,9 @@ def _determine_remote_handler(environ, uri):
 
 
 def _process_json_tiddler(environ, content, uri):
+    """
+    Transmute JSON content into a Tiddler.
+    """
     content = content.decode('utf-8')
     data = simplejson.loads(content)
     tiddler = Tiddler(data['title'], uri)
@@ -237,6 +264,9 @@ def _process_json_tiddler(environ, content, uri):
 
 
 def _process_json_tiddlers(environ, content, uri):
+    """
+    Transmute JSON content into a yielding Tiddler collection.
+    """
     data = simplejson.loads(content.decode('utf-8'))
 
     for item in data:
