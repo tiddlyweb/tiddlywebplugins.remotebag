@@ -12,7 +12,6 @@ it to work with non tiddler or tiddlyweb things.
 """
 
 import httplib2
-import memcache
 import os
 import re
 import simplejson
@@ -64,6 +63,7 @@ def init(config):
     config['special_bag_detectors'].append(is_remote)
 
     if config.get('remotebag.use_memcache'):
+        import memcache
         cache = memcache.Client(config.get('memcache_hosts',
             ['127.0.0.1:11211']))
     else:
