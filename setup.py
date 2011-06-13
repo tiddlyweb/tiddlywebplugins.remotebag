@@ -23,6 +23,7 @@ setup(
     platforms = 'Posix; MacOS X; Windows',
     packages = find_packages(exclude=['test']),
     install_requires = ['setuptools',
+        'tiddlywebplugins.utils',
         'tiddlyweb>=1.2.37',
         'simplejson',
         'httplib2'],
