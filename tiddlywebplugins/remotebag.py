@@ -273,9 +273,18 @@ def _process_json_tiddler(environ, content, uri):
 def _process_json_tiddlers(environ, content, uri):
     """
     Transmute JSON content into a yielding Tiddler collection.
+    Set 'store' to avoid additional GETs later in processing.
     """
     data = simplejson.loads(content.decode('utf-8'))
+    store = environ['tiddlyweb.store']
 
     for item in data:
         tiddler = Tiddler(item['title'], uri)
+        for key in ['creator', 'fields', 'created', 'modified',
+                'modifier', 'type','tags']:
+            try:
+                setattr(tiddler, key, item[key])
+            except (KeyError, AttributeError):
+                pass
+        tiddler.store = store
         yield tiddler
