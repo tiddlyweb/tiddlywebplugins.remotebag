@@ -193,7 +193,7 @@ def get_remote_tiddlers_html(environ, uri):
         title = content.split('<title>', 1)[1].split('</title>', 1)[0]
     except IndexError:
         title = uri
-    yield Tiddler(title, uri)
+    yield RemoteTiddler(title, uri)
 
 
 def get_remote_tiddler_html(environ, uri, title):
@@ -203,7 +203,7 @@ def get_remote_tiddler_html(environ, uri, title):
     TODO: use response metadata to set other attributes
     """
     response, content = retrieve_remote(uri)
-    tiddler = Tiddler(title, uri)
+    tiddler = RemoteTiddler(title, uri)
     try:
         content_type = response['content-type'].split(';', 1)[0]
     except KeyError:
@@ -264,7 +264,7 @@ def _process_json_tiddler(environ, content, uri):
     """
     content = content.decode('utf-8')
     data = simplejson.loads(content)
-    tiddler = Tiddler(data['title'], uri)
+    tiddler = RemoteTiddler(data['title'], uri)
     serializer = Serializer('json', environ)
     serializer.object = tiddler
     return serializer.from_string(content)
@@ -279,7 +279,7 @@ def _process_json_tiddlers(environ, content, uri):
     store = environ['tiddlyweb.store']
 
     for item in data:
-        tiddler = Tiddler(item['title'], uri)
+        tiddler = RemoteTiddler(item['title'], uri)
         for key in ['creator', 'fields', 'created', 'modified',
                 'modifier', 'type','tags']:
             try:
@@ -288,3 +288,27 @@ def _process_json_tiddlers(environ, content, uri):
                 pass
         tiddler.store = store
         yield tiddler
+
+class RemoteTiddler(Tiddler):
+
+    def __init__(self, title=None, bag=None):
+        Tiddler.__init__(self, title, bag)
+        self._text = None
+
+    @property
+    def text(self):
+        if self._text is None:
+            try:
+                self = self.store.get(self)
+                self._text = self.text
+            except (AttributeError, StoreError):
+                return ''
+        return self._text
+
+    @text.setter
+    def text(self, value):
+        self._text = value
+
+    @text.deleter
+    def text(self):
+        self._text = None
