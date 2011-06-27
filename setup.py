@@ -2,7 +2,7 @@ AUTHOR = 'Chris Dent'
 AUTHOR_EMAIL = 'cdent@peermore.com'
 NAME = 'tiddlywebplugins.remotebag'
 DESCRIPTION = 'Access remote content as a bag'
-VERSION = '0.3'
+VERSION = '0.4'
 
 
 import os

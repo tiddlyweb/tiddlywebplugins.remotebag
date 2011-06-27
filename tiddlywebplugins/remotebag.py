@@ -295,8 +295,7 @@ class RemoteTiddler(Tiddler):
         Tiddler.__init__(self, title, bag)
         self._text = None
 
-    @property
-    def text(self):
+    def get_text(self):
         if self._text is None:
             try:
                 self = self.store.get(self)
@@ -305,10 +304,10 @@ class RemoteTiddler(Tiddler):
                 return ''
         return self._text
 
-    @text.setter
-    def text(self, value):
+    def set_text(self, value):
         self._text = value
 
-    @text.deleter
-    def text(self):
+    def del_text(self):
         self._text = None
+
+    text = property(get_text, set_text, del_text, "Manage text attribute")
