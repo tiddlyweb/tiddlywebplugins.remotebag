@@ -148,7 +148,7 @@ def via_recipe(environ, uri):
 
 def retrieve_remote(uri, accept=None, method='GET'):
     """
-    Do an http reqeust to get the remote content.
+    Do an http request to get the remote content.
     """
     uri = uri.encode('UTF-8')
     try:
@@ -276,7 +276,10 @@ def _process_json_tiddlers(environ, content, uri):
     Transmute JSON content into a yielding Tiddler collection.
     Set 'store' to avoid additional GETs later in processing.
     """
-    data = simplejson.loads(content.decode('utf-8'))
+    try:
+        data = simplejson.loads(content.decode('utf-8'))
+    except ValueError, exc:
+        raise SpecialBagError('unable to decode remote json content: %s' % exc)
     store = environ['tiddlyweb.store']
 
     for item in data:
