@@ -211,12 +211,23 @@ def via_recipe(environ, uri):
 
 
 class RemoteTiddler(Tiddler):
+    """
+    A subclass of the standard Tiddler that allows text to be
+    a property. This makes it possible to only get the text
+    of a remote tiddler when it is actually asked for. This
+    avoids overzealous retrieval of single tiddlers when the
+    data in skinny collection of tiddlers will do okay.
+    """
 
     def __init__(self, title=None, bag=None):
         Tiddler.__init__(self, title, bag)
         self._text = None
 
     def get_text(self):
+        """
+        Retrieve tiddler text from the remote store only if
+        requested.
+        """
         if self._text is None:
             try:
                 self = self.store.get(self)
