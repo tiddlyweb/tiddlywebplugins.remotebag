@@ -285,13 +285,14 @@ def _process_json_tiddlers(environ, content, uri):
     for item in data:
         tiddler = RemoteTiddler(item['title'], uri)
         for key in ['creator', 'fields', 'created', 'modified',
-                'modifier', 'type','tags']:
+                'modifier', 'type', 'tags']:
             try:
                 setattr(tiddler, key, item[key])
             except (KeyError, AttributeError):
                 pass
         tiddler.store = store
         yield tiddler
+
 
 class RemoteTiddler(Tiddler):
 
