@@ -31,7 +31,7 @@ from tiddlywebplugins.utils import ensure_bag, get_store
 
 TIDDLERS_PATTERN = re.compile(r'.*/(bags|recipes)/[^/]+/tiddlers$')
 REMOTEURI_BAG = '_remotebag'
-HTTP = None
+CACHE = None
 WHITE_DOMAINS = None
 
 
@@ -39,22 +39,20 @@ def init(config):
     """
     Initialize the plugin: setting up necessary defaults and globals.
     """
-    global HTTP
+    global CACHE
     config['special_bag_detectors'].append(is_remote)
 
     HOOKS['recipe']['put'].append(recipe_change_hook)
 
     if config.get('remotebag.use_memcache'):
         import memcache
-        cache = memcache.Client(config.get('memcache_hosts',
+        CACHE = memcache.Client(config.get('memcache_hosts',
             ['127.0.0.1:11211']))
     else:
         path = config.get('remotebag.cache_dir', '.cache')
         if not os.path.isabs(path):
             path = os.path.join(config.get('root_dir', ''), path)
-        cache = path
-
-    HTTP = httplib2.Http(cache)
+        CACHE = path
 
     store = get_store(config)
     policy = dict(manage=['NONE'], read=['NONE'], write=['NONE'],
@@ -170,13 +168,14 @@ def retrieve_remote(uri, accept=None, method='GET'):
     """
     Do an http request to get the remote content.
     """
+    http = httplib2.Http(CACHE)
     uri = uri.encode('UTF-8')
     try:
         if accept:
-            response, content = HTTP.request(uri, method=method,
+            response, content = http.request(uri, method=method,
                     headers={'Accept': accept})
         else:
-            response, content = HTTP.request(uri, method=method)
+            response, content = http.request(uri, method=method)
     except httplib2.HttpLib2Error, exc:
         raise SpecialBagError('unable to retrieve remote: %s: %s'
                 % (uri, exc))
