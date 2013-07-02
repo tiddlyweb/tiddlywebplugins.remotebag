@@ -34,7 +34,7 @@ def test_get_tiddlers():
         assert title in titles
 
     assert tiddlers[0].bag == REMOTE_BAG
-    assert tiddlers[0].text == ''
+    assert tiddlers[0]._text == None
 
 def test_get_tiddler():
     remote_tiddler = Tiddler('alpha', REMOTE_BAG)
@@ -54,7 +54,7 @@ def test_get_recipe():
         assert title in titles
 
     assert tiddlers[0].bag == REMOTE_BAG
-    assert tiddlers[0].text == ''
+    assert tiddlers[0]._text == None
 
 def test_get_recipe_filters():
     recipe = Recipe('thing')
@@ -66,7 +66,7 @@ def test_get_recipe_filters():
     assert tiddlers[0].title == 'alpha'
 
     assert tiddlers[0].bag == REMOTE_BAG
-    assert tiddlers[0].text == ''
+    assert tiddlers[0].text == 'alpha'
 
 def test_get_remote_weird():
     recipe = Recipe('stuff')

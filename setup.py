@@ -2,7 +2,7 @@ AUTHOR = 'Chris Dent'
 AUTHOR_EMAIL = 'cdent@peermore.com'
 NAME = 'tiddlywebplugins.remotebag'
 DESCRIPTION = 'Access remote content as a bag'
-VERSION = '0.1'
+VERSION = '0.7'
 
 
 import os
@@ -23,7 +23,8 @@ setup(
     platforms = 'Posix; MacOS X; Windows',
     packages = find_packages(exclude=['test']),
     install_requires = ['setuptools',
-        'tiddlyweb>=1.2.37',
+        'tiddlywebplugins.utils',
+        'tiddlyweb>=1.2.39',
         'simplejson',
         'httplib2'],
     zip_safe = False
